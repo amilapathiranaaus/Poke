@@ -12,3 +12,4 @@ navigator.mediaDevices.getUserMedia({
       video.srcObject = stream;
     });
 });
+
