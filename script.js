@@ -3,7 +3,7 @@ const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 const downloadLink = document.getElementById("downloadLink");
 
-// Use back camera if available
+// Request rear camera if available
 navigator.mediaDevices.getUserMedia({
   video: { facingMode: { exact: "environment" } }
 })
@@ -11,7 +11,7 @@ navigator.mediaDevices.getUserMedia({
   video.srcObject = stream;
 })
 .catch(err => {
-  console.warn("Back camera not available. Using default.");
+  console.warn("Back camera not available. Using default camera.");
   return navigator.mediaDevices.getUserMedia({ video: true });
 })
 .then(stream => {
@@ -25,8 +25,7 @@ captureBtn.addEventListener("click", () => {
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Convert to image and set as download link
   const imageData = canvas.toDataURL("image/jpeg");
   downloadLink.href = imageData;
-  downloadLink.style.display = "inline";
+  downloadLink.style.display = "inline-block";
 });

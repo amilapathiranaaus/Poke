@@ -1,16 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pokémon Card Price Checker</title>
-  <script src="script.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pokémon Card Scanner</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Scan a Pokémon Card4</h1>
-  <video id="video" autoplay playsinline></video>
-  <button id="captureBtn">Capture</button>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <a id="downloadLink" download="pokemon-card.jpg">Download Image</a>
-  
-  <p id="result"></p>
+  <div class="container">
+    <h1>📸 Pokémon Card Scanner</h1>
+
+    <video id="video" autoplay playsinline></video>
+
+    <button id="captureBtn">Capture Card</button>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <a id="downloadLink" download="pokemon-card.jpg">Download Image</a>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
