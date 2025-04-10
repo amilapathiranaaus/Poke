@@ -5,7 +5,7 @@ navigator.mediaDevices.getUserMedia({
   video.srcObject = stream;
 })
 .catch(err => {
-  // fallback to front camera if environment cam isn't available
+  // fallback to front camera if environment cam isn't availabl
   console.warn("Back camera not available, using default.", err);
   navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
