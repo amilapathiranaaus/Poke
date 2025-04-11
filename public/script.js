@@ -1,7 +1,10 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
-const downloadLink = document.getElementById("downloadLink");
+const saveBtn = document.getElementById("saveBtn");
+const status = document.getElementById("status");
+
+let capturedBlob = null;
 
 navigator.mediaDevices.getUserMedia({
   video: { facingMode: { exact: "environment" } }
@@ -19,19 +22,33 @@ captureBtn.addEventListener("click", () => {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  canvas.toBlob(async blob => {
-    const filename = `pokemon-${Date.now()}.jpg`;
+  canvas.toBlob(blob => {
+    capturedBlob = blob;
+    saveBtn.disabled = false;
+    status.textContent = "Image captured. Ready to save.";
+  }, "image/jpeg");
+});
 
+saveBtn.addEventListener("click", async () => {
+  if (!capturedBlob) return;
+
+  const filename = `pokemon-${Date.now()}.jpg`;
+
+  try {
+    status.textContent = "Uploading...";
     const res = await fetch(`http://localhost:3000/get-signed-url?filename=${filename}`);
-
     const { url } = await res.json();
 
     await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "image/jpeg" },
-      body: blob
+      body: capturedBlob
     });
 
-    alert("Uploaded to S3 successfully!");
-  }, "image/jpeg");
+    status.textContent = "✅ Uploaded to S3!";
+    saveBtn.disabled = true;
+  } catch (err) {
+    console.error(err);
+    status.textContent = "❌ Upload failed.";
+  }
 });
