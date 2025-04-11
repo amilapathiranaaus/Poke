@@ -39,7 +39,7 @@ saveBtn.addEventListener("click", async () => {
 
   try {
     status.textContent = "Uploading...";
-    const res = await fetch(`http://localhost:3000/get-signed-url?filename=${filename}`);
+    const res = await fetch(`https://poke-backend-osfk.onrender.com/get-signed-url?filename=${filename}`);
     const { url } = await res.json();
 
     await fetch(url, {
