@@ -8,12 +8,22 @@
 </head>
 <body>
   <div class="container">
-    <h1>📸 Pokémon Card Scanner</h1>
-    <video id="video" autoplay playsinline></video>
-    <button id="captureBtn">Capture Card</button>
+    <h1>📸 Pokémon Card Scanner2</h1>
+    
+    <div class="video-wrapper">
+      <video id="video" autoplay playsinline></video>
+    </div>
+
+    <div class="btn-group">
+      <button id="captureBtn">Capture</button>
+      <button id="saveBtn" disabled>Save</button>
+      <button id="downloadBtn" disabled>Download</button>
+    </div>
+
     <canvas id="canvas" style="display: none;"></canvas>
-    <a id="downloadLink" style="display: none;" download="pokemon-card.jpg">Download Image</a>
+    <p id="status"></p>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>

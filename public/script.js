@@ -2,6 +2,7 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 const saveBtn = document.getElementById("saveBtn");
+const downloadBtn = document.getElementById("downloadBtn");
 const status = document.getElementById("status");
 
 let capturedBlob = null;
@@ -11,6 +12,7 @@ navigator.mediaDevices.getUserMedia({
 }).then(stream => {
   video.srcObject = stream;
 }).catch(() => {
+  // fallback to any camera if no back camera
   navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
     video.srcObject = stream;
   });
@@ -25,6 +27,7 @@ captureBtn.addEventListener("click", () => {
   canvas.toBlob(blob => {
     capturedBlob = blob;
     saveBtn.disabled = false;
+    downloadBtn.disabled = false;
     status.textContent = "Image captured. Ready to save.";
   }, "image/jpeg");
 });
@@ -51,4 +54,13 @@ saveBtn.addEventListener("click", async () => {
     console.error(err);
     status.textContent = "❌ Upload failed.";
   }
+});
+
+downloadBtn.addEventListener("click", () => {
+  if (!capturedBlob) return;
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(capturedBlob);
+  a.download = `pokemon-${Date.now()}.jpg`;
+  a.click();
 });
