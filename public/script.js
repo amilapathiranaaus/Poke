@@ -22,7 +22,8 @@ captureBtn.addEventListener("click", () => {
   canvas.toBlob(async blob => {
     const filename = `pokemon-${Date.now()}.jpg`;
 
-    const res = await fetch(`/get-signed-url?filename=${filename}`);
+    const res = await fetch(`http://localhost:3000/get-signed-url?filename=${filename}`);
+
     const { url } = await res.json();
 
     await fetch(url, {
