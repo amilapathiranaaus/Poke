@@ -55,7 +55,6 @@ getInfoBtn.addEventListener("click", async () => {
         result.innerHTML = `
           <strong>Name:</strong> ${data.name}<br/>
           <strong>Price:</strong> ${data.price ? `$${data.price}` : 'N/A'}<br/>
-          <img src="${data.imageUrl}" alt="Card Image" width="300"/>
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
