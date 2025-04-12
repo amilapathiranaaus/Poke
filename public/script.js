@@ -1,14 +1,23 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
-const getInfoBtn = document.getElementById("getInfoBtn");
+const getPriceBtn = document.getElementById("getInfoBtn"); // renamed functionally
 const status = document.getElementById("status");
 const result = document.getElementById("result");
 
 let capturedBlob = null;
 
+// Request high resolution and better camera config
 navigator.mediaDevices.getUserMedia({
-  video: { facingMode: { exact: "environment" } }
+  video: {
+    facingMode: { ideal: "environment" },
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    advanced: [
+      { focusMode: "continuous" },
+      { exposureMode: "continuous" }
+    ]
+  }
 }).then(stream => {
   video.srcObject = stream;
 }).catch(() => {
@@ -18,24 +27,28 @@ navigator.mediaDevices.getUserMedia({
 });
 
 captureBtn.addEventListener("click", () => {
-  const ctx = canvas.getContext("2d");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  status.textContent = "Focusing... hold still";
 
-  canvas.toBlob(blob => {
-    capturedBlob = blob;
-    getInfoBtn.disabled = false;
-    status.textContent = "Image captured. Ready to get price.";
-    result.innerHTML = '';
-  }, "image/jpeg");
+  setTimeout(() => {
+    const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      capturedBlob = blob;
+      getPriceBtn.disabled = false;
+      status.textContent = "✅ Image captured. Ready to get price.";
+      result.innerHTML = '';
+    }, "image/jpeg", 0.95); // high quality
+  }, 1000); // 1 second delay
 });
 
-getInfoBtn.addEventListener("click", async () => {
+getPriceBtn.addEventListener("click", async () => {
   if (!capturedBlob) return;
 
   status.textContent = "Uploading and analyzing...";
-  getInfoBtn.disabled = true;
+  getPriceBtn.disabled = true;
 
   const reader = new FileReader();
   reader.onloadend = async () => {
@@ -53,8 +66,9 @@ getInfoBtn.addEventListener("click", async () => {
       if (data.name) {
         status.textContent = "✅ Card identified!";
         result.innerHTML = `
-          <strong>Name:</strong> ${data.name}<br/>
-          <strong>Price:</strong> ${data.price ? `$${data.price}` : 'N/A'}<br/>
+          <strong>Card:</strong> ${data.name}<br/>
+          <strong>Stage:</strong> ${data.evolution}<br/>
+          <strong>Price:</strong> $${data.price || 'N/A'}
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
