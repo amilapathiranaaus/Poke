@@ -1,9 +1,10 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
-const saveBtn = document.getElementById("saveBtn");
+const getInfoBtn = document.getElementById("getInfoBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const status = document.getElementById("status");
+const result = document.getElementById("result");
 
 let capturedBlob = null;
 
@@ -12,7 +13,6 @@ navigator.mediaDevices.getUserMedia({
 }).then(stream => {
   video.srcObject = stream;
 }).catch(() => {
-  // fallback to any camera if no back camera
   navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
     video.srcObject = stream;
   });
@@ -26,34 +26,48 @@ captureBtn.addEventListener("click", () => {
 
   canvas.toBlob(blob => {
     capturedBlob = blob;
-    saveBtn.disabled = false;
+    getInfoBtn.disabled = false;
     downloadBtn.disabled = false;
-    status.textContent = "Image captured. Ready to save.";
+    status.textContent = "Image captured. Ready to get info.";
+    result.innerHTML = '';
   }, "image/jpeg");
 });
 
-saveBtn.addEventListener("click", async () => {
+getInfoBtn.addEventListener("click", async () => {
   if (!capturedBlob) return;
 
-  const filename = `pokemon-${Date.now()}.jpg`;
+  status.textContent = "Uploading and analyzing...";
+  getInfoBtn.disabled = true;
 
-  try {
-    status.textContent = "Uploading...";
-    const res = await fetch(`https://poke-backend-osfk.onrender.com/get-signed-url?filename=${filename}`);
-    const { url } = await res.json();
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64data = reader.result;
 
-    await fetch(url, {
-      method: "PUT",
-      headers: { "Content-Type": "image/jpeg" },
-      body: capturedBlob
-    });
+    try {
+      const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64data }),
+      });
 
-    status.textContent = "✅ Uploaded to S3!";
-    saveBtn.disabled = true;
-  } catch (err) {
-    console.error(err);
-    status.textContent = "❌ Upload failed.";
-  }
+      const data = await res.json();
+
+      if (data.name) {
+        status.textContent = "✅ Card identified!";
+        result.innerHTML = `
+          <strong>Name:</strong> ${data.name}<br/>
+          <img src="${data.imageUrl}" alt="Card Image" width="300"/>
+        `;
+      } else {
+        status.textContent = "⚠️ Could not identify the card.";
+      }
+    } catch (err) {
+      console.error(err);
+      status.textContent = "❌ Error during analysis.";
+    }
+  };
+
+  reader.readAsDataURL(capturedBlob);
 });
 
 downloadBtn.addEventListener("click", () => {

@@ -8,22 +8,24 @@
 </head>
 <body>
   <div class="container">
-    <h1>📸 Pokémon Card Scanner2</h1>
-    
+    <h1>📸 Pokémon Card Scanner</h1>
+
     <div class="video-wrapper">
       <video id="video" autoplay playsinline></video>
     </div>
 
     <div class="btn-group">
       <button id="captureBtn">Capture</button>
-      <button id="saveBtn" disabled>Save</button>
+      <button id="getInfoBtn" disabled>Get Info</button>
       <button id="downloadBtn" disabled>Download</button>
     </div>
 
     <canvas id="canvas" style="display: none;"></canvas>
-    <p id="status"></p>
-  </div>
 
-  <script src="script.js"></script>
+    <p id="status"></p>
+    <div id="result" style="margin-top: 1rem;"></div>
+
+    <script src="script.js"></script>
+  </div>
 </body>
 </html>
