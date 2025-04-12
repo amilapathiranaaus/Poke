@@ -2,7 +2,6 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 const getInfoBtn = document.getElementById("getInfoBtn");
-const downloadBtn = document.getElementById("downloadBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
 
@@ -27,8 +26,7 @@ captureBtn.addEventListener("click", () => {
   canvas.toBlob(blob => {
     capturedBlob = blob;
     getInfoBtn.disabled = false;
-    downloadBtn.disabled = false;
-    status.textContent = "Image captured. Ready to get info.";
+    status.textContent = "Image captured. Ready to get price.";
     result.innerHTML = '';
   }, "image/jpeg");
 });
@@ -56,6 +54,7 @@ getInfoBtn.addEventListener("click", async () => {
         status.textContent = "✅ Card identified!";
         result.innerHTML = `
           <strong>Name:</strong> ${data.name}<br/>
+          <strong>Price:</strong> ${data.price ? `$${data.price}` : 'N/A'}<br/>
           <img src="${data.imageUrl}" alt="Card Image" width="300"/>
         `;
       } else {
@@ -68,13 +67,4 @@ getInfoBtn.addEventListener("click", async () => {
   };
 
   reader.readAsDataURL(capturedBlob);
-});
-
-downloadBtn.addEventListener("click", () => {
-  if (!capturedBlob) return;
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(capturedBlob);
-  a.download = `pokemon-${Date.now()}.jpg`;
-  a.click();
 });
