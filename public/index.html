@@ -3,27 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kikki's Pokémon Card Scanner</title>
+  <title>Pokémon Card Scanner</title>
   <link rel="stylesheet" href="style.css" />
+  <script async src="https://docs.opencv.org/4.5.2/opencv.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>📸 Pokémon Card Scanner</h1>
-
     <div class="video-wrapper">
       <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" style="display: none;"></canvas>
     </div>
-
     <div class="btn-group">
-      <button id="captureBtn">Capture</button>
-      <button id="getInfoBtn" disabled>Get Price</button>
+      <button id="captureBtn">Capture & Get Price</button>
     </div>
-
-    <canvas id="canvas" style="display: none;"></canvas>
-
     <p id="status"></p>
     <div id="result" style="margin-top: 1rem;"></div>
-
     <script src="script.js"></script>
   </div>
 </body>
