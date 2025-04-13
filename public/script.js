@@ -5,20 +5,16 @@ const getPriceBtn = document.getElementById("getInfoBtn");
 const retakeBtn = document.getElementById("retakeBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
-const photoPreview = document.getElementById("photoPreview");
+const capturedPhoto = document.getElementById("capturedPhoto");
 
 let capturedBlob = null;
 
-// Start camera with high quality
+// Get camera with ideal portrait aspect ratio
 navigator.mediaDevices.getUserMedia({
   video: {
     facingMode: { ideal: "environment" },
-    width: { ideal: 1080 },
-    height: { ideal: 1920 },
-    advanced: [
-      { focusMode: "continuous" },
-      { exposureMode: "continuous" }
-    ]
+    width: { ideal: 720 },
+    height: { ideal: 960 }
   }
 }).then(stream => {
   video.srcObject = stream;
@@ -28,62 +24,63 @@ navigator.mediaDevices.getUserMedia({
   });
 });
 
-// Capture image
+// Capture photo that matches what’s visible on screen
 captureBtn.addEventListener("click", () => {
-  status.textContent = "📷 Capturing...";
-  setTimeout(() => {
-    const ctx = canvas.getContext("2d");
-    canvas.width = video.videoHeight;
-    canvas.height = video.videoWidth;
+  status.textContent = "Hold still...";
 
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate(-90 * Math.PI / 180);
-    ctx.drawImage(video, -canvas.height / 2, -canvas.width / 2, canvas.height, canvas.width);
-    ctx.restore();
+  setTimeout(() => {
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const displayRatio = video.clientWidth / video.clientHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    // Match visible area: crop if needed
+    let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
+
+    if (videoRatio > displayRatio) {
+      // Crop sides
+      const newWidth = video.videoHeight * displayRatio;
+      sx = (video.videoWidth - newWidth) / 2;
+      sw = newWidth;
+    } else {
+      // Crop top/bottom
+      const newHeight = video.videoWidth / displayRatio;
+      sy = (video.videoHeight - newHeight) / 2;
+      sh = newHeight;
+    }
+
+    canvas.width = 720;
+    canvas.height = 960;
+
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob(blob => {
       capturedBlob = blob;
       getPriceBtn.disabled = false;
+      captureBtn.disabled = true;
       retakeBtn.style.display = "inline-block";
-      captureBtn.style.display = "none";
 
-      const imgURL = URL.createObjectURL(blob);
-      photoPreview.innerHTML = `<img src="${imgURL}" class="captured-photo"/>`;
-
-      status.textContent = "✅ Image captured. Ready to get price.";
-      result.innerHTML = '';
+      const imageUrl = URL.createObjectURL(blob);
+      capturedPhoto.src = imageUrl;
+      capturedPhoto.style.display = "block";
+      status.textContent = "✅ Captured. Ready to get price.";
+      result.innerHTML = "";
     }, "image/jpeg", 0.95);
-  }, 1000);
+  }, 500);
 });
 
-// Retake
-retakeBtn.addEventListener("click", () => {
-  capturedBlob = null;
-  photoPreview.innerHTML = '';
-  result.innerHTML = '';
-  status.textContent = '';
-  captureBtn.style.display = "inline-block";
-  retakeBtn.style.display = "none";
-  getPriceBtn.disabled = true;
-});
-
-// Get price
 getPriceBtn.addEventListener("click", async () => {
   if (!capturedBlob) return;
-
-  status.textContent = "🔍 Uploading and analyzing...";
+  status.textContent = "Analyzing...";
   getPriceBtn.disabled = true;
 
   const reader = new FileReader();
   reader.onloadend = async () => {
-    const base64data = reader.result;
-
     try {
       const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64data }),
+        body: JSON.stringify({ imageBase64: reader.result })
       });
 
       const data = await res.json();
@@ -91,11 +88,9 @@ getPriceBtn.addEventListener("click", async () => {
       if (data.name) {
         status.textContent = "✅ Card identified!";
         result.innerHTML = `
-          <div style="font-size: 1.5em; font-weight: bold; color: #2c3e50;">
-            💰 Price: $${data.price || 'N/A'}
-          </div>
-          <div><strong>Card:</strong> ${data.name}</div>
-          <div><strong>Stage:</strong> ${data.evolution}</div>
+          <strong>Card:</strong> ${data.name}<br/>
+          <strong>Stage:</strong> ${data.evolution}<br/>
+          <div class="price">$${data.price || 'N/A'}</div>
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
@@ -107,4 +102,16 @@ getPriceBtn.addEventListener("click", async () => {
   };
 
   reader.readAsDataURL(capturedBlob);
+});
+
+retakeBtn.addEventListener("click", () => {
+  capturedBlob = null;
+  canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+  capturedPhoto.src = "";
+  capturedPhoto.style.display = "none";
+  result.innerHTML = "";
+  status.textContent = "";
+  captureBtn.disabled = false;
+  getPriceBtn.disabled = true;
+  retakeBtn.style.display = "none";
 });
