@@ -17,6 +17,7 @@ async function startVideo() {
     }
   });
   video.srcObject = stream;
+  await video.play();
 }
 
 startVideo();
@@ -85,4 +86,16 @@ captureAndGetBtn.addEventListener("click", async () => {
   }, 500);
 });
 
-retakeBtn.addEventListener
+retakeBtn.addEventListener("click", async () => {
+  capturedBlob = null;
+  captureAndGetBtn.disabled = false;
+  retakeBtn.style.display = "none";
+  result.innerHTML = '';
+  status.textContent = "📷 Ready to capture again.";
+
+  if (video.srcObject) {
+    video.play(); // Resume existing stream
+  } else {
+    await startVideo(); // Fallback
+  }
+});
