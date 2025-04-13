@@ -81,10 +81,10 @@ getPriceBtn.addEventListener("click", async () => {
       if (data.name) {
         status.textContent = "✅ Card identified!";
         result.innerHTML = `
-          <strong>Card:</strong> ${data.name}<br/>
-          <strong>Stage:</strong> ${data.evolution}<br/>
-          <div class="price">💰 $${data.price || 'N/A'}</div>
-          <img src="${data.imageUrl}" alt="Captured Pokémon Card"/>
+        <strong>Card:</strong> ${data.name}<br/>
+        <strong>Stage:</strong> ${data.evolution}<br/>
+        <div class="price">💰 $${data.price || 'N/A'}</div>
+        <img src="${finalImageUrl}" alt="Captured Pokémon Card"/>
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
