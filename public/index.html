@@ -12,19 +12,19 @@
 
     <div class="video-wrapper">
       <video id="video" autoplay playsinline></video>
-      <canvas id="overlay"></canvas>
     </div>
 
     <div class="btn-group">
       <button id="captureBtn">Capture</button>
+      <button id="retakeBtn" style="display: none;">Retake</button>
       <button id="getInfoBtn" disabled>Get Price</button>
     </div>
 
-    <p id="status"></p>
-
-    <div id="result" style="margin-top: 1rem;"></div>
-
     <canvas id="canvas" style="display: none;"></canvas>
+
+    <p id="status"></p>
+    <div id="result" style="margin-top: 1rem;"></div>
+    <div id="photoPreview" class="photo-preview"></div>
 
     <script src="script.js"></script>
   </div>

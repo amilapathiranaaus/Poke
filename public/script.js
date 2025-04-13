@@ -1,69 +1,78 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
-const overlay = document.getElementById("overlay");
 const captureBtn = document.getElementById("captureBtn");
 const getPriceBtn = document.getElementById("getInfoBtn");
+const retakeBtn = document.getElementById("retakeBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
-
+const photoPreview = document.getElementById("photoPreview");
 
 let capturedBlob = null;
 
-// Setup camera in portrait ratio
+// Start camera with high quality
 navigator.mediaDevices.getUserMedia({
   video: {
     facingMode: { ideal: "environment" },
-    width: { ideal: 720 },
-    height: { ideal: 960 },
+    width: { ideal: 1080 },
+    height: { ideal: 1920 },
+    advanced: [
+      { focusMode: "continuous" },
+      { exposureMode: "continuous" }
+    ]
   }
 }).then(stream => {
   video.srcObject = stream;
-}).catch(console.error);
-
-// Draw overlay rectangle (guide)
-video.addEventListener("loadedmetadata", () => {
-  overlay.width = video.videoWidth;
-  overlay.height = video.videoHeight;
-  const ctx = overlay.getContext("2d");
-
-  const drawOverlay = () => {
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
-    const padding = 30;
-    const rectWidth = overlay.width - padding * 2;
-    const rectHeight = rectWidth * 1.4;
-    const x = padding;
-    const y = (overlay.height - rectHeight) / 2;
-
-    ctx.strokeStyle = "lime";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(x, y, rectWidth, rectHeight);
-    requestAnimationFrame(drawOverlay);
-  };
-  drawOverlay();
+}).catch(() => {
+  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+    video.srcObject = stream;
+  });
 });
 
+// Capture image
 captureBtn.addEventListener("click", () => {
-  status.textContent = "Focusing... hold still";
-
+  status.textContent = "📷 Capturing...";
   setTimeout(() => {
     const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.width = video.videoHeight;
+    canvas.height = video.videoWidth;
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.drawImage(video, -canvas.height / 2, -canvas.width / 2, canvas.height, canvas.width);
+    ctx.restore();
 
     canvas.toBlob(blob => {
       capturedBlob = blob;
       getPriceBtn.disabled = false;
+      retakeBtn.style.display = "inline-block";
+      captureBtn.style.display = "none";
+
+      const imgURL = URL.createObjectURL(blob);
+      photoPreview.innerHTML = `<img src="${imgURL}" class="captured-photo"/>`;
+
       status.textContent = "✅ Image captured. Ready to get price.";
       result.innerHTML = '';
     }, "image/jpeg", 0.95);
   }, 1000);
 });
 
+// Retake
+retakeBtn.addEventListener("click", () => {
+  capturedBlob = null;
+  photoPreview.innerHTML = '';
+  result.innerHTML = '';
+  status.textContent = '';
+  captureBtn.style.display = "inline-block";
+  retakeBtn.style.display = "none";
+  getPriceBtn.disabled = true;
+});
+
+// Get price
 getPriceBtn.addEventListener("click", async () => {
   if (!capturedBlob) return;
 
-  status.textContent = "Uploading and analyzing...";
+  status.textContent = "🔍 Uploading and analyzing...";
   getPriceBtn.disabled = true;
 
   const reader = new FileReader();
@@ -78,16 +87,15 @@ getPriceBtn.addEventListener("click", async () => {
       });
 
       const data = await res.json();
-      const capturedImageUrl = URL.createObjectURL(capturedBlob);
-      const finalImageUrl = data.imageUrl || capturedImageUrl;
 
       if (data.name) {
         status.textContent = "✅ Card identified!";
         result.innerHTML = `
-        <strong>Card:</strong> ${data.name}<br/>
-        <strong>Stage:</strong> ${data.evolution}<br/>
-        <div class="price">💰 $${data.price || 'N/A'}</div>
-        <img src="${finalImageUrl}" alt="Captured Pokémon Card"/>
+          <div style="font-size: 1.5em; font-weight: bold; color: #2c3e50;">
+            💰 Price: $${data.price || 'N/A'}
+          </div>
+          <div><strong>Card:</strong> ${data.name}</div>
+          <div><strong>Stage:</strong> ${data.evolution}</div>
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
