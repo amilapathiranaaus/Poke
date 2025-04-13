@@ -5,6 +5,8 @@ const captureBtn = document.getElementById("captureBtn");
 const getPriceBtn = document.getElementById("getInfoBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
+const capturedImageUrl = URL.createObjectURL(capturedBlob);
+const finalImageUrl = data.imageUrl || capturedImageUrl;
 
 let capturedBlob = null;
 
