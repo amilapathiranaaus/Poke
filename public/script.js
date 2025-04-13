@@ -8,7 +8,7 @@ const result = document.getElementById("result");
 
 let capturedBlob = null;
 
-// Request high-res camera
+// Request camera
 navigator.mediaDevices.getUserMedia({
   video: {
     facingMode: { ideal: "environment" },
@@ -27,24 +27,21 @@ captureBtn.addEventListener("click", () => {
   setTimeout(() => {
     const ctx = canvas.getContext("2d");
 
-    // Get actual display size of video on screen
-    const displayWidth = video.clientWidth;
-    const displayHeight = video.clientHeight;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
 
-    // Use same aspect ratio as green rectangle (3:4)
-    const cropHeight = video.videoHeight;
-    const cropWidth = cropHeight * (3 / 4);
-    const startX = (video.videoWidth - cropWidth) / 2;
+    // Crop a portrait section from the center of the video
+    const targetRatio = 3 / 4; // Portrait
+    const cropHeight = vh;
+    const cropWidth = cropHeight * targetRatio;
+    const startX = (vw - cropWidth) / 2;
 
-    // Set canvas to cropped portrait size
     canvas.width = cropWidth;
     canvas.height = cropHeight;
 
-    // Flip horizontally if video is mirrored
+    // Flip canvas horizontally to fix mirrored capture
     ctx.translate(cropWidth, 0);
     ctx.scale(-1, 1);
-
-    // Crop and draw from center
     ctx.drawImage(video, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     canvas.toBlob(blob => {
@@ -54,7 +51,7 @@ captureBtn.addEventListener("click", () => {
       status.textContent = "✅ Image captured.";
       result.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="Captured Photo"/>`;
     }, "image/jpeg", 0.95);
-  }, 1000);
+  }, 500);
 });
 
 getInfoBtn.addEventListener("click", async () => {
