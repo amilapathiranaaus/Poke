@@ -5,8 +5,7 @@ const captureBtn = document.getElementById("captureBtn");
 const getPriceBtn = document.getElementById("getInfoBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
-const capturedImageUrl = URL.createObjectURL(capturedBlob);
-const finalImageUrl = data.imageUrl || capturedImageUrl;
+
 
 let capturedBlob = null;
 
@@ -79,6 +78,8 @@ getPriceBtn.addEventListener("click", async () => {
       });
 
       const data = await res.json();
+      const capturedImageUrl = URL.createObjectURL(capturedBlob);
+      const finalImageUrl = data.imageUrl || capturedImageUrl;
 
       if (data.name) {
         status.textContent = "✅ Card identified!";
