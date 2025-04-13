@@ -11,20 +11,19 @@
     <h1>📸 Pokémon Card Scanner</h1>
 
     <div class="video-wrapper">
-      <div class="overlay-box"></div>
       <video id="video" autoplay playsinline></video>
+      <div class="overlay-rectangle"></div>
     </div>
 
     <div class="btn-group">
-      <button id="captureBtn">Capture</button>
-      <button id="getInfoBtn" disabled>Get Price</button>
-      <button id="retakeBtn" style="display:none;">Retake Photo</button>
+      <button id="captureAndGetBtn">Capture & Get Price</button>
+      <button id="retakeBtn" style="display: none;">Retake</button>
     </div>
 
     <canvas id="canvas" style="display: none;"></canvas>
 
-    <p id="status">📷 Ready to capture</p>
-    <div id="result"></div>
+    <p id="status"></p>
+    <div id="result" style="margin-top: 1rem;"></div>
 
     <script src="script.js"></script>
   </div>
