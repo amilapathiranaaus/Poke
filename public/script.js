@@ -27,18 +27,24 @@ captureBtn.addEventListener("click", () => {
   setTimeout(() => {
     const ctx = canvas.getContext("2d");
 
-    const vw = video.videoWidth;
-    const vh = video.videoHeight;
+    // Get actual display size of video on screen
+    const displayWidth = video.clientWidth;
+    const displayHeight = video.clientHeight;
 
-    const targetRatio = 3 / 4;
-    const cropHeight = vh;
-    const cropWidth = cropHeight * targetRatio;
-    const startX = (vw - cropWidth) / 2;
+    // Use same aspect ratio as green rectangle (3:4)
+    const cropHeight = video.videoHeight;
+    const cropWidth = cropHeight * (3 / 4);
+    const startX = (video.videoWidth - cropWidth) / 2;
 
+    // Set canvas to cropped portrait size
     canvas.width = cropWidth;
     canvas.height = cropHeight;
 
-    // ❌ Removed mirroring
+    // Flip horizontally if video is mirrored
+    ctx.translate(cropWidth, 0);
+    ctx.scale(-1, 1);
+
+    // Crop and draw from center
     ctx.drawImage(video, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     canvas.toBlob(blob => {
