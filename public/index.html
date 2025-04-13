@@ -1,31 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://docs.opencv.org/4.5.5/opencv.js"></script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pokémon Card Scanner</title>
   <link rel="stylesheet" href="style.css" />
+  <script async src="https://docs.opencv.org/4.5.5/opencv.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>📸 Pokémon Card Scanner</h1>
-
-    <div class="video-wrapper">
+    <div class="video-wrapper" style="position: relative;">
       <video id="video" autoplay playsinline></video>
+      <canvas id="overlay" style="position: absolute; top: 0; left: 0;"></canvas>
     </div>
-
     <div class="btn-group">
       <button id="captureBtn">Capture</button>
       <button id="getInfoBtn" disabled>Get Price</button>
     </div>
-
     <canvas id="canvas" style="display: none;"></canvas>
-
     <p id="status"></p>
     <div id="result" style="margin-top: 1rem;"></div>
-
     <script src="script.js"></script>
   </div>
 </body>
