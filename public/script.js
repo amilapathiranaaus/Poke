@@ -39,9 +39,7 @@ captureBtn.addEventListener("click", () => {
     canvas.width = cropWidth;
     canvas.height = cropHeight;
 
-    // Flip canvas horizontally to fix mirrored capture
-    ctx.translate(cropWidth, 0);
-    ctx.scale(-1, 1);
+    // ❌ No mirroring here — draw directly
     ctx.drawImage(video, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     canvas.toBlob(blob => {
@@ -53,6 +51,7 @@ captureBtn.addEventListener("click", () => {
     }, "image/jpeg", 0.95);
   }, 500);
 });
+
 
 getInfoBtn.addEventListener("click", async () => {
   if (!capturedBlob) return;
