@@ -94,4 +94,5 @@ retakeBtn.addEventListener("click", () => {
   getInfoBtn.disabled = true;
   retakeBtn.style.display = "none";
   result.innerHTML = '';
-  status.textContent = "
+  status.textContent = "📷 Ready to capture again.";
+});
