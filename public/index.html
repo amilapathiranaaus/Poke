@@ -8,82 +8,52 @@
   <style>
     body {
       font-family: sans-serif;
+      background: #f9f9f9;
       margin: 0;
-      padding: 0;
-      background: #f3f3f3;
-      text-align: center;
-    }
-
-    .container {
-      max-width: 480px;
-      margin: auto;
       padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h1 {
-      font-size: 1.6rem;
+      text-align: center;
       margin-bottom: 1rem;
     }
 
     .video-wrapper {
       position: relative;
-      width: 100%;
-      aspect-ratio: 3/4;
-      background: #000;
-      border-radius: 12px;
+      width: 360px;
+      height: 480px;
       overflow: hidden;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
 
     video {
-      width: 100%;
+      transform: scaleX(-1); /* Mirror fix */
       height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1); /* mirror fix for mobile rear camera */
-    }
-
-    canvas {
-      display: none;
     }
 
     .btn-group {
       margin-top: 1rem;
+      display: flex;
+      gap: 10px;
     }
 
     button {
       padding: 0.6rem 1rem;
-      margin: 0.3rem;
       font-size: 1rem;
       border: none;
-      border-radius: 6px;
-      background-color: #2a9d8f;
+      background: #4CAF50;
       color: white;
+      border-radius: 0.5rem;
       cursor: pointer;
-      transition: background-color 0.3s;
     }
 
     button:disabled {
-      background-color: #aaa;
+      background: #ccc;
       cursor: not-allowed;
-    }
-
-    button:hover:not(:disabled) {
-      background-color: #21867a;
-    }
-
-    #capturedPhoto {
-      display: block;
-      margin: 1rem auto;
-      width: 100%;
-      max-width: 360px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-
-    .price {
-      font-size: 1.8rem;
-      color: #e76f51;
-      font-weight: bold;
-      margin-top: 0.5rem;
     }
 
     #status {
@@ -93,32 +63,41 @@
 
     #result {
       margin-top: 1rem;
-      font-size: 1rem;
+      text-align: center;
+    }
+
+    #result img {
+      margin-top: 0.5rem;
+      width: 240px;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    .price {
+      font-size: 1.5rem;
+      color: #e91e63;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📸 Pokémon Card Scanner</h1>
+  <h1>📸 Pokémon Card Scanner</h1>
 
-    <div class="video-wrapper">
-      <video id="video" autoplay playsinline></video>
-    </div>
-
-    <div class="btn-group">
-      <button id="captureBtn">Capture</button>
-      <button id="getInfoBtn" disabled>Get Price</button>
-      <button id="retakeBtn" style="display: none;">Retake Photo</button>
-    </div>
-
-    <canvas id="canvas"></canvas>
-
-    <p id="status"></p>
-    <div id="result"></div>
-
-    <img id="capturedPhoto" alt="Captured Pokémon card" />
-
-    <script src="script.js"></script>
+  <div class="video-wrapper">
+    <video id="video" autoplay playsinline muted></video>
   </div>
+
+  <div class="btn-group">
+    <button id="captureBtn">Capture</button>
+    <button id="getInfoBtn" disabled>Get Price</button>
+    <button id="retakeBtn" style="display: none;">Retake Photo</button>
+  </div>
+
+  <canvas id="canvas" style="display: none;"></canvas>
+
+  <p id="status"></p>
+  <div id="result"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>
