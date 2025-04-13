@@ -1,5 +1,4 @@
 const video = document.getElementById("video");
-const overlay = document.getElementById("overlay");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 const getPriceBtn = document.getElementById("getInfoBtn");
@@ -7,13 +6,12 @@ const status = document.getElementById("status");
 const result = document.getElementById("result");
 
 let capturedBlob = null;
-let streaming = false;
 
 navigator.mediaDevices.getUserMedia({
   video: {
     facingMode: { ideal: "environment" },
-    width: { ideal: 1280 },
-    height: { ideal: 720 },
+    width: { ideal: 720 },
+    height: { ideal: 1280 },
     advanced: [
       { focusMode: "continuous" },
       { exposureMode: "continuous" }
@@ -21,71 +19,33 @@ navigator.mediaDevices.getUserMedia({
   }
 }).then(stream => {
   video.srcObject = stream;
-  video.addEventListener("loadedmetadata", () => {
-    overlay.width = video.videoWidth;
-    overlay.height = video.videoHeight;
-    startContourDetection();
+}).catch(() => {
+  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+    video.srcObject = stream;
   });
 });
 
-function startContourDetection() {
-  if (typeof cv === 'undefined') {
-    return setTimeout(startContourDetection, 100);
-  }
-
-  const ctx = overlay.getContext("2d");
-  const src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
-  const gray = new cv.Mat();
-  const blurred = new cv.Mat();
-  const edges = new cv.Mat();
-  const contours = new cv.MatVector();
-  const hierarchy = new cv.Mat();
-
-  function detect() {
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      ctx.drawImage(video, 0, 0, overlay.width, overlay.height);
-      let imageData = ctx.getImageData(0, 0, overlay.width, overlay.height);
-      src.data.set(imageData.data);
-
-      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-      cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-      cv.Canny(blurred, edges, 75, 200);
-      cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-      ctx.clearRect(0, 0, overlay.width, overlay.height);
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'lime';
-
-      for (let i = 0; i < contours.size(); ++i) {
-        const cnt = contours.get(i);
-        const approx = new cv.Mat();
-        cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
-
-        if (approx.rows === 4 && cv.contourArea(approx) > 10000) {
-          ctx.beginPath();
-          for (let j = 0; j < 4; ++j) {
-            let point = approx.intPtr(j);
-            ctx.lineTo(point[0], point[1]);
-          }
-          ctx.closePath();
-          ctx.stroke();
-          approx.delete();
-        }
-      }
-    }
-    requestAnimationFrame(detect);
-  }
-  detect();
-}
-
 captureBtn.addEventListener("click", () => {
-  status.textContent = "Capturing image... hold still";
+  status.textContent = "Focusing... hold still";
 
   setTimeout(() => {
     const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Ensure portrait by rotating if necessary
+    const isLandscape = video.videoWidth > video.videoHeight;
+    if (isLandscape) {
+      canvas.width = video.videoHeight;
+      canvas.height = video.videoWidth;
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(-90 * Math.PI / 180);
+      ctx.drawImage(video, -video.videoWidth / 2, -video.videoHeight / 2);
+      ctx.restore();
+    } else {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
 
     canvas.toBlob(blob => {
       capturedBlob = blob;
@@ -93,7 +53,7 @@ captureBtn.addEventListener("click", () => {
       status.textContent = "✅ Image captured. Ready to get price.";
       result.innerHTML = '';
     }, "image/jpeg", 0.95);
-  }, 800);
+  }, 1000); // 1 second delay
 });
 
 getPriceBtn.addEventListener("click", async () => {
@@ -104,8 +64,9 @@ getPriceBtn.addEventListener("click", async () => {
 
   const reader = new FileReader();
   reader.onloadend = async () => {
+    const base64data = reader.result;
+
     try {
-      const base64data = reader.result;
       const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,10 +77,12 @@ getPriceBtn.addEventListener("click", async () => {
 
       if (data.name) {
         status.textContent = "✅ Card identified!";
+        const imageUrl = URL.createObjectURL(capturedBlob);
         result.innerHTML = `
           <strong>Card:</strong> ${data.name}<br/>
           <strong>Stage:</strong> ${data.evolution}<br/>
-          <strong>Price:</strong> $${data.price || 'N/A'}
+          <div id="price">Price: $${data.price || 'N/A'}</div>
+          <img src="${imageUrl}" alt="Captured Card" class="captured-photo" />
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
