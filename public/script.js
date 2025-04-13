@@ -1,6 +1,7 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
+const getInfoBtn = document.getElementById("getInfoBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
 
@@ -17,8 +18,6 @@ navigator.mediaDevices.getUserMedia({
 });
 
 captureBtn.addEventListener("click", () => {
-  status.textContent = "📷 Capturing and analyzing...";
-
   const ctx = canvas.getContext("2d");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -26,33 +25,46 @@ captureBtn.addEventListener("click", () => {
 
   canvas.toBlob(blob => {
     capturedBlob = blob;
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: reader.result }),
-        });
-
-        const data = await res.json();
-        if (data.name && data.price) {
-          status.textContent = "✅ Card recognized!";
-          result.innerHTML = `
-            <strong>Name:</strong> ${data.name}<br/>
-            <strong>Price:</strong> $${data.price}
-          `;
-        } else {
-          status.textContent = "⚠️ Could not identify the card.";
-          result.innerHTML = '';
-        }
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Error during processing.";
-      }
-    };
-
-    reader.readAsDataURL(capturedBlob);
+    getInfoBtn.disabled = false;
+    status.textContent = "Image captured. Ready to get price.";
+    result.innerHTML = '';
   }, "image/jpeg");
+});
+
+getInfoBtn.addEventListener("click", async () => {
+  if (!capturedBlob) return;
+
+  status.textContent = "Uploading and analyzing...";
+  getInfoBtn.disabled = true;
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64data = reader.result;
+
+    try {
+      const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64data }),
+      });
+
+      const data = await res.json();
+
+      if (data.name) {
+        status.textContent = "✅ Card identified!";
+        result.innerHTML = `
+          <strong>Name:</strong> ${data.name}<br/>
+          <strong>Price:</strong> ${data.price ? `$${data.price}` : 'N/A'}<br/>
+          <img src="${data.imageUrl}" alt="Card Image" width="300"/>
+        `;
+      } else {
+        status.textContent = "⚠️ Could not identify the card.";
+      }
+    } catch (err) {
+      console.error(err);
+      status.textContent = "❌ Error during analysis.";
+    }
+  };
+
+  reader.readAsDataURL(capturedBlob);
 });
