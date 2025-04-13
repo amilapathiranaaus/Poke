@@ -30,7 +30,6 @@ captureBtn.addEventListener("click", () => {
     const vw = video.videoWidth;
     const vh = video.videoHeight;
 
-    // Match the overlay aspect ratio: portrait (3:4)
     const targetRatio = 3 / 4;
     const cropHeight = vh;
     const cropWidth = cropHeight * targetRatio;
@@ -39,9 +38,7 @@ captureBtn.addEventListener("click", () => {
     canvas.width = cropWidth;
     canvas.height = cropHeight;
 
-    // Draw from video (mirrored, so flip)
-    ctx.translate(cropWidth, 0);
-    ctx.scale(-1, 1);
+    // ❌ Removed mirroring
     ctx.drawImage(video, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     canvas.toBlob(blob => {
