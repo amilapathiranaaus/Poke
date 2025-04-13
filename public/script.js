@@ -1,5 +1,6 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
+const overlay = document.getElementById("overlay");
 const captureBtn = document.getElementById("captureBtn");
 const getPriceBtn = document.getElementById("getInfoBtn");
 const status = document.getElementById("status");
@@ -7,22 +8,37 @@ const result = document.getElementById("result");
 
 let capturedBlob = null;
 
+// Setup camera in portrait ratio
 navigator.mediaDevices.getUserMedia({
   video: {
     facingMode: { ideal: "environment" },
     width: { ideal: 720 },
-    height: { ideal: 1280 },
-    advanced: [
-      { focusMode: "continuous" },
-      { exposureMode: "continuous" }
-    ]
+    height: { ideal: 960 },
   }
 }).then(stream => {
   video.srcObject = stream;
-}).catch(() => {
-  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-    video.srcObject = stream;
-  });
+}).catch(console.error);
+
+// Draw overlay rectangle (guide)
+video.addEventListener("loadedmetadata", () => {
+  overlay.width = video.videoWidth;
+  overlay.height = video.videoHeight;
+  const ctx = overlay.getContext("2d");
+
+  const drawOverlay = () => {
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+    const padding = 30;
+    const rectWidth = overlay.width - padding * 2;
+    const rectHeight = rectWidth * 1.4;
+    const x = padding;
+    const y = (overlay.height - rectHeight) / 2;
+
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, rectWidth, rectHeight);
+    requestAnimationFrame(drawOverlay);
+  };
+  drawOverlay();
 });
 
 captureBtn.addEventListener("click", () => {
@@ -30,22 +46,9 @@ captureBtn.addEventListener("click", () => {
 
   setTimeout(() => {
     const ctx = canvas.getContext("2d");
-
-    // Ensure portrait by rotating if necessary
-    const isLandscape = video.videoWidth > video.videoHeight;
-    if (isLandscape) {
-      canvas.width = video.videoHeight;
-      canvas.height = video.videoWidth;
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(-90 * Math.PI / 180);
-      ctx.drawImage(video, -video.videoWidth / 2, -video.videoHeight / 2);
-      ctx.restore();
-    } else {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob(blob => {
       capturedBlob = blob;
@@ -53,7 +56,7 @@ captureBtn.addEventListener("click", () => {
       status.textContent = "✅ Image captured. Ready to get price.";
       result.innerHTML = '';
     }, "image/jpeg", 0.95);
-  }, 1000); // 1 second delay
+  }, 1000);
 });
 
 getPriceBtn.addEventListener("click", async () => {
@@ -77,12 +80,11 @@ getPriceBtn.addEventListener("click", async () => {
 
       if (data.name) {
         status.textContent = "✅ Card identified!";
-        const imageUrl = URL.createObjectURL(capturedBlob);
         result.innerHTML = `
           <strong>Card:</strong> ${data.name}<br/>
           <strong>Stage:</strong> ${data.evolution}<br/>
-          <div id="price">Price: $${data.price || 'N/A'}</div>
-          <img src="${imageUrl}" alt="Captured Card" class="captured-photo" />
+          <div class="price">💰 $${data.price || 'N/A'}</div>
+          <img src="${data.imageUrl}" alt="Captured Pokémon Card"/>
         `;
       } else {
         status.textContent = "⚠️ Could not identify the card.";
