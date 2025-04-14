@@ -3,112 +3,116 @@ const captureBtn = document.getElementById("captureBtn");
 const retakeBtn = document.getElementById("retakeBtn");
 const status = document.getElementById("status");
 const result = document.getElementById("result");
-const flash = document.getElementById("flash");
-const shutterSound = document.getElementById("shutterSound");
 const spinner = document.getElementById("spinner");
+const shutterSound = document.getElementById("shutterSound");
 
-let capturedBlob = null;
+let mediaStream = null;
 let imageCapture = null;
-let stream = null;
+let currentBlob = null;
 
-// Start camera
-navigator.mediaDevices.getUserMedia({
-  video: {
-    facingMode: { ideal: "environment" },
-    width: { ideal: 1280 },
-    height: { ideal: 720 }
+async function startCamera() {
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    });
+
+    video.srcObject = mediaStream;
+
+    const track = mediaStream.getVideoTracks()[0];
+    imageCapture = new ImageCapture(track);
+  } catch (err) {
+    console.error("Camera error:", err);
+    status.textContent = "❌ Cannot access camera.";
   }
-}).then(s => {
-  stream = s;
-  video.srcObject = stream;
-  const track = stream.getVideoTracks()[0];
-  imageCapture = new ImageCapture(track);
-}).catch(err => {
-  console.error("Camera error", err);
-});
+}
 
-// Capture and analyze
+startCamera();
+
 captureBtn.addEventListener("click", async () => {
-  if (!imageCapture) return;
-
   status.textContent = "Capturing...";
   shutterSound.play();
-  flash.classList.add("active");
-  setTimeout(() => flash.classList.remove("active"), 300);
+  flash();
 
   try {
-    const bitmap = await imageCapture.grabFrame();
+    const blob = await imageCapture.takePhoto();
+    currentBlob = blob;
+    showCapturedImage(blob);
 
-    const offCanvas = document.createElement("canvas");
-    const offCtx = offCanvas.getContext("2d");
+    // Freeze video by stopping track
+    mediaStream.getVideoTracks()[0].stop();
 
-    const vw = bitmap.width;
-    const vh = bitmap.height;
-    const targetRatio = 3 / 4;
-    const cropHeight = vh;
-    const cropWidth = cropHeight * targetRatio;
-    const startX = (vw - cropWidth) / 2;
+    captureBtn.disabled = true;
+    retakeBtn.style.display = "inline-block";
+    spinner.style.display = "block";
 
-    offCanvas.width = cropWidth;
-    offCanvas.height = cropHeight;
-
-    offCtx.drawImage(bitmap, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-    offCanvas.toBlob(async blob => {
-      capturedBlob = blob;
-      const imageUrl = URL.createObjectURL(blob);
-      result.innerHTML = `<img src="${imageUrl}" alt="Captured" />`;
-
-      video.pause();
-      retakeBtn.style.display = "inline-block";
-      captureBtn.disabled = true;
-
-      status.textContent = "Analyzing card...";
-      spinner.style.display = "block";
-
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64: reader.result }),
-          });
-
-          const data = await res.json();
-          spinner.style.display = "none";
-
-          if (data.name) {
-            status.textContent = "✅ Card identified!";
-            result.innerHTML += `
-              <div><strong>Card:</strong> ${data.name}</div>
-              <div><strong>Stage:</strong> ${data.evolution}</div>
-              <div class="price"><strong>Price:</strong> $${data.price || 'N/A'}</div>
-            `;
-          } else {
-            status.textContent = "⚠️ Could not identify the card.";
-          }
-        } catch (err) {
-          console.error(err);
-          spinner.style.display = "none";
-          status.textContent = "❌ Error during analysis.";
-        }
-      };
-
-      reader.readAsDataURL(blob);
-    }, "image/jpeg", 0.95);
+    analyzeImage(blob);
   } catch (err) {
     console.error("Capture error:", err);
-    status.textContent = "❌ Failed to capture image.";
+    status.textContent = "❌ Capture failed.";
   }
 });
 
-// Retake
+function showCapturedImage(blob) {
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(blob);
+  img.style.transform = "scaleX(1)"; // Not mirrored
+  result.innerHTML = "";
+  result.appendChild(img);
+}
+
 retakeBtn.addEventListener("click", () => {
-  capturedBlob = null;
-  result.innerHTML = '';
+  result.innerHTML = "";
   status.textContent = "📷 Ready to capture again.";
   captureBtn.disabled = false;
   retakeBtn.style.display = "none";
-  video.play();
+  spinner.style.display = "none";
+  currentBlob = null;
+  startCamera();
 });
+
+async function analyzeImage(blob) {
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64data = reader.result;
+
+    try {
+      const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64data }),
+      });
+
+      const data = await res.json();
+      spinner.style.display = "none";
+
+      if (data.name) {
+        status.textContent = "✅ Card identified!";
+        result.innerHTML += `
+          <div><strong>Card:</strong> ${data.name}</div>
+          <div><strong>Stage:</strong> ${data.evolution}</div>
+          <div class="price"><strong>Price:</strong> $${data.price || 'N/A'}</div>
+        `;
+      } else {
+        status.textContent = "⚠️ Could not identify the card.";
+      }
+    } catch (err) {
+      spinner.style.display = "none";
+      console.error(err);
+      status.textContent = "❌ Error during analysis.";
+    }
+  };
+
+  reader.readAsDataURL(blob);
+}
+
+function flash() {
+  const overlay = document.querySelector(".overlay");
+  overlay.style.background = "white";
+  setTimeout(() => {
+    overlay.style.background = "transparent";
+  }, 100);
+}
