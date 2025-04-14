@@ -1,5 +1,4 @@
 const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
 const captureBtn = document.getElementById("captureBtn");
 const retakeBtn = document.getElementById("retakeBtn");
 const status = document.getElementById("status");
@@ -9,6 +8,7 @@ const shutterSound = document.getElementById("shutterSound");
 const spinner = document.getElementById("spinner");
 
 let capturedBlob = null;
+let imageCapture = null;
 let stream = null;
 
 // Start camera
@@ -21,73 +21,86 @@ navigator.mediaDevices.getUserMedia({
 }).then(s => {
   stream = s;
   video.srcObject = stream;
+  const track = stream.getVideoTracks()[0];
+  imageCapture = new ImageCapture(track);
 }).catch(err => {
   console.error("Camera error", err);
 });
 
 // Capture and analyze
-captureBtn.addEventListener("click", () => {
+captureBtn.addEventListener("click", async () => {
+  if (!imageCapture) return;
+
   status.textContent = "Capturing...";
   shutterSound.play();
   flash.classList.add("active");
   setTimeout(() => flash.classList.remove("active"), 300);
 
-  const ctx = canvas.getContext("2d");
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-  const targetRatio = 3 / 4;
-  const cropHeight = vh;
-  const cropWidth = cropHeight * targetRatio;
-  const startX = (vw - cropWidth) / 2;
+  try {
+    const bitmap = await imageCapture.grabFrame();
 
-  canvas.width = cropWidth;
-  canvas.height = cropHeight;
+    const offCanvas = document.createElement("canvas");
+    const offCtx = offCanvas.getContext("2d");
 
-  ctx.drawImage(video, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    const vw = bitmap.width;
+    const vh = bitmap.height;
+    const targetRatio = 3 / 4;
+    const cropHeight = vh;
+    const cropWidth = cropHeight * targetRatio;
+    const startX = (vw - cropWidth) / 2;
 
-  canvas.toBlob(async blob => {
-    capturedBlob = blob;
-    const imageUrl = URL.createObjectURL(blob);
-    result.innerHTML = `<img src="${imageUrl}" alt="Captured" />`;
+    offCanvas.width = cropWidth;
+    offCanvas.height = cropHeight;
 
-    video.pause();
-    retakeBtn.style.display = "inline-block";
-    captureBtn.disabled = true;
+    offCtx.drawImage(bitmap, startX, 0, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
-    status.textContent = "Analyzing card...";
-    spinner.style.display = "block";
+    offCanvas.toBlob(async blob => {
+      capturedBlob = blob;
+      const imageUrl = URL.createObjectURL(blob);
+      result.innerHTML = `<img src="${imageUrl}" alt="Captured" />`;
 
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: reader.result }),
-        });
+      video.pause();
+      retakeBtn.style.display = "inline-block";
+      captureBtn.disabled = true;
 
-        const data = await res.json();
-        spinner.style.display = "none";
+      status.textContent = "Analyzing card...";
+      spinner.style.display = "block";
 
-        if (data.name) {
-          status.textContent = "✅ Card identified!";
-          result.innerHTML += `
-            <div><strong>Card:</strong> ${data.name}</div>
-            <div><strong>Stage:</strong> ${data.evolution}</div>
-            <div class="price"><strong>Price:</strong> $${data.price || 'N/A'}</div>
-          `;
-        } else {
-          status.textContent = "⚠️ Could not identify the card.";
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const res = await fetch('https://poke-backend-osfk.onrender.com/process-card', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: reader.result }),
+          });
+
+          const data = await res.json();
+          spinner.style.display = "none";
+
+          if (data.name) {
+            status.textContent = "✅ Card identified!";
+            result.innerHTML += `
+              <div><strong>Card:</strong> ${data.name}</div>
+              <div><strong>Stage:</strong> ${data.evolution}</div>
+              <div class="price"><strong>Price:</strong> $${data.price || 'N/A'}</div>
+            `;
+          } else {
+            status.textContent = "⚠️ Could not identify the card.";
+          }
+        } catch (err) {
+          console.error(err);
+          spinner.style.display = "none";
+          status.textContent = "❌ Error during analysis.";
         }
-      } catch (err) {
-        console.error(err);
-        spinner.style.display = "none";
-        status.textContent = "❌ Error during analysis.";
-      }
-    };
+      };
 
-    reader.readAsDataURL(blob);
-  }, "image/jpeg", 0.95);
+      reader.readAsDataURL(blob);
+    }, "image/jpeg", 0.95);
+  } catch (err) {
+    console.error("Capture error:", err);
+    status.textContent = "❌ Failed to capture image.";
+  }
 });
 
 // Retake

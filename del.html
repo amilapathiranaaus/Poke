@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Card Scanner</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #ff3d3d, #ffffff); /* Poké Ball gradient */
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      position: relative;
+      width: 90%;
+      max-width: 400px;
+      height: 60%;
+      max-height: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .video-feed {
+      width: 100%;
+      height: 100%;
+      background: #000; /* Fallback for video */
+      border: 5px solid #333; /* Metallic card-like border */
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .video-feed video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Pokémon images */
+    .pokemon {
+      position: absolute;
+      z-index: 2; /* Above video feed */
+      opacity: 0.9; /* Slightly transparent */
+    }
+
+    .pikachu {
+      width: 100px;
+      top: -30px; /* Peek from top */
+      left: 10%;
+      transform: rotate(10deg);
+    }
+
+    .bulbasaur {
+      width: 90px;
+      bottom: -20px; /* Peek from bottom */
+      right: 15%;
+      transform: rotate(-15deg);
+    }
+
+    .charizard {
+      width: 120px;
+      top: 50%; /* Peek from side */
+      right: -40px;
+      transform: translateY(-50%) rotate(20deg);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 400px) {
+      .pokemon {
+        width: 70px; /* Smaller Pokémon on small screens */
+      }
+      .pikachu {
+        top: -20px;
+        left: 5%;
+      }
+      .bulbasaur {
+        bottom: -15px;
+        right: 10%;
+      }
+      .charizard {
+        right: -30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="video-feed">
+      <!-- Replace with actual video feed from your app -->
+      <video autoplay muted></video>
+    </div>
+    <!-- Replace src with actual Pokémon PNGs with transparent backgrounds -->
+    <img class="pokemon pikachu" src="https://img.pokemondb.net/sprites/home/normal/pikachu.png" alt="Pikachu">
+    <img class="pokemon bulbasaur" src="https://img.pokemondb.net/sprites/home/normal/bulbasaur.png" alt="Bulbasaur">
+    <img class="pokemon charizard" src="https://img.pokemondb.net/sprites/home/normal/pikachu.png" alt="Charizard">
+  </div>
+</body>
+</html>
