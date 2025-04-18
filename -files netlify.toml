@@ -1,0 +1,20 @@
+[33mcommit 0b4caee396d77b648aa008152f1a18f2a204e340[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Amila <emailpathirana@gmail.com>
+Date:   Sat Apr 19 04:09:28 2025 +1000
+
+    3
+
+[1mdiff --git a/netlify.toml b/netlify.toml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1c37e6e[m
+[1m--- /dev/null[m
+[1m+++ b/netlify.toml[m
+[36m@@ -0,0 +1,7 @@[m
+[32m+[m[32m[build][m
+[32m+[m[32m  command = "npx expo export --platform web"[m
+[32m+[m[32m  publish = "web-build"[m
+[32m+[m
+[32m+[m[32m[build.environment][m
+[32m+[m[32m  NODE_VERSION = "18"[m
+[32m+[m[32m  NPM_VERSION = "9"[m[41m [m
+\ No newline at end of file[m
