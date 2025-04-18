@@ -97,7 +97,7 @@ async function analyzeImage(blob) {
           <div class="price"><strong>Price:</strong> $${data.price || 'N/A'}</div>
         `;
       } else {
-        status.textContent = "⚠️ Could not identify the card.";
+        status.textContent = "⚠️ Could not identify the card .";
       }
     } catch (err) {
       spinner.style.display = "none";
