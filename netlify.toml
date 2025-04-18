@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && npx expo install @expo/webpack-config && npx expo export --platform web"
+  command = "npm install --legacy-peer-deps && npx expo install @expo/webpack-config@^19.0.0 && npx expo export --platform web"
   publish = "dist"
 
 [build.environment]
