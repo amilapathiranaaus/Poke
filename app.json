@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "camera-app",
-    "slug": "camera-app",
-    "version": "1.0.0",
+    "name": "Pokémon Card Scanner",
+    "slug": "pokemon-card-scanner",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to your camera to take photos."
-      }
+      },
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +21,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.cameraapp",
-      "permissions": ["CAMERA"]
+      "permissions": ["CAMERA"],
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",

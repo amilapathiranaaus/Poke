@@ -1,12 +1,15 @@
 [build]
-  command = "npm run build"
+  command = "npx expo export --platform web"
   publish = "dist"
 
-[build.environment]
+[context.production.environment]
+  # Optional: Set Node version if needed
   NODE_VERSION = "18"
-  NPM_VERSION = "9"
+
+[context.production]
+  command = "npx expo export --platform web"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200 
+  status = 200

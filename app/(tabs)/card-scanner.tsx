@@ -111,7 +111,8 @@ export default function CardScannerScreen() {
   }
 
   if (!permission.granted) {
-    return Alert.alert('Error', 'No access to camera');
+    Alert.alert('Error', 'No access to camera');
+    return <View style={styles.container} />;
   }
 
   return (
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   },
   previewImage: {
     width: '100%',
-    height: '50%',
+    height: '60%',
     borderRadius: 15,
     marginBottom: 20,
     borderWidth: 2,
@@ -324,7 +325,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 2,
     borderColor: '#FFCB05',
-    flexShrink: 1,
   },
   cardTitle: {
     fontSize: 20,
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   infoText: {
     fontSize: 16,
@@ -347,7 +347,6 @@ const styles = StyleSheet.create({
     textShadowColor: '#000',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
-    flex: 1,
   },
   priceText: {
     fontSize: 18,
@@ -362,7 +361,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 12,
     borderRadius: 10,
-    marginTop: 15,
+    marginBottom: 20,
     gap: 8,
     alignSelf: 'center',
     minWidth: 120,
