@@ -21,7 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.cameraapp",
-      "permissions": ["CAMERA"],
+      "permissions": [ "CAMERA","INTERNET","VIBRATE"],
       "versionCode": 1
     },
     "web": {
