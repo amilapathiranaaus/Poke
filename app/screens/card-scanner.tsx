@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Platform } from 'react-native';
 import { StyleSheet, TouchableOpacity, View, Alert, ActivityIndicator, Image } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -124,7 +125,15 @@ export default function CardScannerScreen() {
       Alert.alert('Error', 'Failed to analyze the image');
     }
   };
-
+  if (Platform.OS === 'web') {
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ThemedText type="title">📸 Camera not available on web</ThemedText>
+        <ThemedText>Please use the mobile app to scan Pokémon cards.</ThemedText>
+      </ThemedView>
+    );
+  }
+  
   if (!permission) {
     return <View />;
   }
