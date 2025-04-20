@@ -3,11 +3,7 @@
   publish = "dist"
 
 [context.production.environment]
-  # Optional: Set Node version if needed
   NODE_VERSION = "18"
-
-[context.production]
-  command = "npx expo export --platform web"
 
 [[redirects]]
   from = "/*"
