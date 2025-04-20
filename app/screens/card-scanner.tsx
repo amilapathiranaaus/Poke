@@ -1,5 +1,4 @@
-import { useState, useRef } from 'react';
-import { Platform } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View, Alert, ActivityIndicator, Image } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +21,12 @@ export default function CardScannerScreen() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const cameraRef = useRef<any>(null);
 
+  useEffect(() => {
+    console.log("CardScannerScreen mounted");
+  }, []);
+
   const toggleCameraType = () => {
-    setType(current => current === 'back' ? 'front' : 'back');
+    setType(current => (current === 'back' ? 'front' : 'back'));
   };
 
   const takePicture = async () => {
@@ -50,11 +53,8 @@ export default function CardScannerScreen() {
           },
         });
 
-        // Show preview with the captured image
         setCapturedImage(photo.uri);
         setShowPreview(true);
-        
-        // Process and analyze the image
         await processAndAnalyzeImage(photo.uri);
       } catch (error) {
         console.error('Capture error:', error);
@@ -66,15 +66,11 @@ export default function CardScannerScreen() {
 
   const processAndAnalyzeImage = async (uri: string) => {
     try {
-      // Read the file as base64
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      
-      // Add the data URL prefix
+
       const base64Data = `data:image/jpeg;base64,${base64}`;
-      
-      // Analyze the image
       await analyzeImage(base64Data);
     } catch (error) {
       console.error('Processing error:', error);
@@ -97,9 +93,9 @@ export default function CardScannerScreen() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           imageBase64: base64Image,
         }),
       });
@@ -107,7 +103,7 @@ export default function CardScannerScreen() {
       console.log('Response status:', response.status);
       const data = await response.json();
       console.log('Response data:', data);
-      
+
       setIsLoading(false);
 
       if (data.name) {
@@ -125,21 +121,18 @@ export default function CardScannerScreen() {
       Alert.alert('Error', 'Failed to analyze the image');
     }
   };
-  if (Platform.OS === 'web') {
-    return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ThemedText type="title">📸 Camera not available on web</ThemedText>
-        <ThemedText>Please use the mobile app to scan Pokémon cards.</ThemedText>
-      </ThemedView>
-    );
-  }
-  
+
   if (!permission) {
     return <View />;
   }
 
   if (!permission.granted) {
-    return Alert.alert('Error', 'No access to camera');
+    requestPermission(); // ask for it
+    return (
+      <ThemedView style={styles.permissionContainer}>
+        <ThemedText>Requesting camera permission...</ThemedText>
+      </ThemedView>
+    );
   }
 
   return (
@@ -150,17 +143,17 @@ export default function CardScannerScreen() {
 
       <ThemedView style={styles.cameraContainer}>
         {!showPreview ? (
-          <CameraView 
-            style={styles.camera} 
-            facing={type} 
+          <CameraView
+            style={styles.camera}
+            facing={type}
             ref={cameraRef}
           >
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
                 <Ionicons name="camera-reverse" size={30} color="white" />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.button, styles.captureButton]} 
+              <TouchableOpacity
+                style={[styles.button, styles.captureButton]}
                 onPress={takePicture}
                 disabled={isLoading}
               >
@@ -171,8 +164,8 @@ export default function CardScannerScreen() {
         ) : (
           <ThemedView style={styles.previewContainer}>
             {capturedImage && (
-              <Image 
-                source={{ uri: capturedImage }} 
+              <Image
+                source={{ uri: capturedImage }}
                 style={styles.previewImage}
                 resizeMode="contain"
               />
@@ -187,8 +180,8 @@ export default function CardScannerScreen() {
                 <ThemedText style={styles.price}>Price: ${cardInfo.price}</ThemedText>
               </ThemedView>
             ) : null}
-            <TouchableOpacity 
-              style={[styles.button, styles.retakeButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.retakeButton]}
               onPress={retakePicture}
             >
               <ThemedText style={styles.buttonText}>Retake</ThemedText>
@@ -276,4 +269,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 10,
   },
-}); 
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
